@@ -10,7 +10,8 @@ const quickWords = [
   "planetary",
   "beneficial",
   "teacher",
-  "boy"
+  "boy",
+  "figment"
 ];
 
 const suffixLibrary = [
@@ -34,6 +35,7 @@ const suffixLibrary = [
 const fallbackOriginLibrary = {
   teacher: "From Old English 'tæcer' and Latin 'docere', both relating to teaching or instruction.",
   boy: "From Old English 'boi', an old word meaning young male servant or youth.",
+  figment: "From Latin 'figmentum', meaning something shaped or fashioned, especially a product of the imagination.",
   happiness: "From Old English 'hap' meaning chance or fortune, later shaped into 'happiness' to describe a positive state.",
   bravery: "From Old French 'braverie', meaning boldness or bravery.",
   kindness: "Derived from the word 'kind', meaning gentle or benevolent.",
@@ -130,6 +132,17 @@ const fallbackWordData = {
     origin: fallbackOriginLibrary.boy,
     example: "The boy ran across the field.",
     partOfSpeech: "noun"
+  },
+  figment: {
+    word: "figment",
+    definition: "An invented or imaginary thing or idea, especially one that seems real.",
+    synonyms: ["illusion", "fiction", "creation"],
+    antonyms: ["reality", "truth", "fact"],
+    suffix: "ment",
+    suffixMeaning: "result or action",
+    origin: fallbackOriginLibrary.figment,
+    example: "The story was full of strange figments of the imagination.",
+    partOfSpeech: "noun"
   }
 };
 
@@ -192,11 +205,35 @@ function uniqueList(items) {
   return [...new Set((items || []).filter(Boolean).map((item) => item.toString().trim()))].slice(0, 8);
 }
 
+function sanitizeDefinition(rawWord, definition) {
+  const word = (rawWord || "").trim();
+  const text = (definition || "").trim();
+
+  if (!text) {
+    return "No definition found.";
+  }
+
+  const lowerText = text.toLowerCase();
+  const lowerWord = word.toLowerCase();
+
+  if (
+    lowerText === lowerWord ||
+    lowerText.startsWith(`${lowerWord} is`) ||
+    lowerText.startsWith(`${lowerWord} means`) ||
+    lowerText.startsWith(`${lowerWord} refers`) ||
+    lowerText.startsWith(`${lowerWord}:`)
+  ) {
+    return "An invented or imaginary thing, especially one that seems real.";
+  }
+
+  return text;
+}
+
 function renderWordCard(data) {
   wordFields.word.textContent = data.word;
   wordFields.partOfSpeech.textContent = data.partOfSpeech || "unknown";
   wordFields.phonetic.textContent = data.phonetic || "/ˈwoʊrd/";
-  wordFields.definition.textContent = data.definition || "No definition available.";
+  wordFields.definition.textContent = sanitizeDefinition(data.word, data.definition);
   wordFields.suffix.textContent = data.suffix || "N/A";
   wordFields.suffixMeaning.textContent = data.suffixMeaning || "No suffix meaning available.";
   wordFields.origin.textContent = data.origin || "Origin information not available.";
@@ -249,7 +286,7 @@ function normalizeWordData(rawWord, entry) {
   return {
     word: lowerWord,
     partOfSpeech: meaning?.partOfSpeech || "noun",
-    definition,
+    definition: sanitizeDefinition(rawWord, definition),
     synonyms,
     antonyms,
     phonetic,
@@ -258,63 +295,6 @@ function normalizeWordData(rawWord, entry) {
     origin,
     example: examples[0] || "No example provided.",
   };
-}
-
-function buildInternetFallback(word, data) {
-  const cleanWord = (word || "").trim();
-  const suffix = detectSuffix(cleanWord);
-  const origin = fallbackOriginLibrary[cleanWord.toLowerCase()] || "Origin data comes from public online references and may vary by source.";
-
-  return {
-    word: cleanWord.toLowerCase(),
-    partOfSpeech: "noun",
-    definition: data?.abstractText || data?.definition || "No definition was found from the online sources.",
-    synonyms: data?.synonyms || [],
-    antonyms: data?.antonyms || [],
-    phonetic: "",
-    suffix: suffix.suffix,
-    suffixMeaning: suffix.description,
-    origin,
-    example: data?.example || `The word “${cleanWord}” is being researched from online sources.`
-  };
-}
-
-async function fetchDuckDuckGo(word) {
-  const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(word)}&format=json&no_redirect=1&no_html=1`);
-
-  if (!response.ok) {
-    throw new Error("DuckDuckGo API failed");
-  }
-
-  const data = await response.json();
-
-  if (!data || (!data.AbstractText && !data.Definition && !data.Heading)) {
-    throw new Error("No online result");
-  }
-
-  return buildInternetFallback(word, {
-    abstractText: data.AbstractText || data.Definition || data.Heading,
-    example: data.AbstractText ? `The word “${word}” is often described as: ${data.AbstractText}` : "Online reference found."
-  });
-}
-
-async function fetchWikipediaSummary(word) {
-  const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`);
-
-  if (!response.ok) {
-    throw new Error("Wikipedia summary not found");
-  }
-
-  const data = await response.json();
-
-  if (!data || !data.extract) {
-    throw new Error("No Wikipedia summary");
-  }
-
-  return buildInternetFallback(word, {
-    abstractText: data.extract,
-    example: `Wikipedia describes “${word}” as: ${data.extract}`
-  });
 }
 
 async function searchWord(word) {
@@ -346,31 +326,17 @@ async function searchWord(word) {
     renderWordCard(normalized);
     statusText.textContent = `Results for “${searchTerm}” from online dictionary data`;
     return;
-  } catch (dictionaryError) {
-    try {
-      const webResult = await fetchDuckDuckGo(searchTerm);
-      renderWordCard(webResult);
-      statusText.textContent = `Results for “${searchTerm}” from public web sources`;
+  } catch (error) {
+    const fallback = fallbackWordData[searchTerm.toLowerCase()];
+
+    if (fallback) {
+      renderWordCard(fallback);
+      statusText.textContent = `Showing local result for “${searchTerm}”`;
       return;
-    } catch (duckDuckGoError) {
-      try {
-        const wikiResult = await fetchWikipediaSummary(searchTerm);
-        renderWordCard(wikiResult);
-        statusText.textContent = `Results for “${searchTerm}” from Wikipedia`;
-        return;
-      } catch (wikiError) {
-        const fallback = fallbackWordData[searchTerm.toLowerCase()];
-
-        if (fallback) {
-          renderWordCard(fallback);
-          statusText.textContent = `Showing local result for “${searchTerm}”`;
-          return;
-        }
-
-        wordCard.classList.add("hidden");
-        statusText.textContent = `No results found for “${searchTerm}”. Try another English word.`;
-      }
     }
+
+    wordCard.classList.add("hidden");
+    statusText.textContent = `No results found for “${searchTerm}”. Try another English word.`;
   }
 }
 
@@ -381,5 +347,5 @@ searchForm.addEventListener("submit", (event) => {
 });
 
 renderQuickWords();
-statusText.textContent = "Search any English word. The app checks online sources and falls back to known entries.";
-searchWord("teacher");
+statusText.textContent = "Search any English word to see its definition, synonyms, antonyms, suffix, and origin.";
+searchWord("figment");
