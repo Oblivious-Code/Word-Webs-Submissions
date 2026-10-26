@@ -9,14 +9,7 @@ Features:
 - Works with the public Dictionary API and includes fallback word data
 
 How to run locally:
-1. Open the project folder in a browser, or serve it with a tiny local server.
-2. Run one of these commands in the project folder:
-
-   python -m http.server 8000
-
-3. Then open:
-
-   http://localhost:8000
+Open Up https://oblivious-code.github.io/Word-Webs-Submissions/
 
 Files included:
 - index.html
