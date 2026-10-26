@@ -11,7 +11,8 @@ const quickWords = [
   "beneficial",
   "teacher",
   "boy",
-  "figment"
+  "figment",
+  "femboy"
 ];
 
 const suffixLibrary = [
@@ -41,7 +42,8 @@ const fallbackOriginLibrary = {
   kindness: "Derived from the word 'kind', meaning gentle or benevolent.",
   curious: "From Latin 'curiosus', meaning careful or inquisitive.",
   helpful: "From 'help' plus the suffix '-ful', meaning full of usefulness.",
-  careful: "From 'care' with the suffix '-ful', indicating full of care."
+  careful: "From 'care' with the suffix '-ful', indicating full of care.",
+  femboy: "Modern slang term formed by blending 'feminine' and 'boy'; usage varies by context and community."
 };
 
 const fallbackWordData = {
@@ -142,6 +144,17 @@ const fallbackWordData = {
     suffixMeaning: "result or action",
     origin: fallbackOriginLibrary.figment,
     example: "The story was full of strange figments of the imagination.",
+    partOfSpeech: "noun"
+  },
+  femboy: {
+    word: "femboy",
+    definition: "A modern slang term describing a boy or young man who presents in a feminine or androgynous style; usage varies by community and context.",
+    synonyms: ["androgynous", "feminine-presenting", "softboy"],
+    antonyms: ["masculine", "tomboy", "male-presenting"],
+    suffix: "boy",
+    suffixMeaning: "a person or youth",
+    origin: fallbackOriginLibrary.femboy,
+    example: "The character was described as a femboy because of his soft, feminine style choices.",
     partOfSpeech: "noun"
   }
 };
@@ -297,6 +310,38 @@ function normalizeWordData(rawWord, entry) {
   };
 }
 
+async function fetchWordEntry(searchTerm) {
+  const url = `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(searchTerm)}`;
+
+  let attempt = 0;
+
+  while (attempt < 3) {
+    try {
+      attempt += 1;
+
+      const response = await fetch(url, { cache: "no-store" });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!Array.isArray(data) || !data[0]) {
+        throw new Error("No result");
+      }
+
+      return data[0];
+    } catch (error) {
+      if (attempt >= 3) {
+        throw error;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 400 * attempt));
+    }
+  }
+}
+
 async function searchWord(word) {
   const searchTerm = word.trim();
 
@@ -309,22 +354,10 @@ async function searchWord(word) {
   statusText.textContent = `Searching for “${searchTerm}”...`;
 
   try {
-    const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(searchTerm)}`);
-
-    if (!response.ok) {
-      throw new Error("Word not found in dictionary API");
-    }
-
-    const data = await response.json();
-    const entry = Array.isArray(data) ? data[0] : null;
-
-    if (!entry) {
-      throw new Error("No word data found");
-    }
-
+    const entry = await fetchWordEntry(searchTerm);
     const normalized = normalizeWordData(searchTerm, entry);
     renderWordCard(normalized);
-    statusText.textContent = `Results for “${searchTerm}” from online dictionary data`;
+    statusText.textContent = `Results for “${searchTerm}”`;
     return;
   } catch (error) {
     const fallback = fallbackWordData[searchTerm.toLowerCase()];
@@ -348,4 +381,3 @@ searchForm.addEventListener("submit", (event) => {
 
 renderQuickWords();
 statusText.textContent = "Search any English word to see its definition, synonyms, antonyms, suffix, and origin.";
-searchWord("figment");
