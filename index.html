@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WordWebs Dictionary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">WordWebs</div>
+
+        <form id="search-form" class="search-form" autocomplete="off">
+          <input
+            id="search-input"
+            type="text"
+            placeholder="Search a word..."
+            aria-label="Search a word"
+          />
+          <button type="submit">Search</button>
+        </form>
+      </header>
+
+      <main class="content">
+        <aside class="sidebar">
+          <h2>Popular words</h2>
+          <div id="quick-words" class="quick-words"></div>
+        </aside>
+
+        <section class="result-panel">
+          <div id="status" class="status">Type a word and press Search.</div>
+
+          <div id="word-card" class="word-card hidden">
+            <div class="word-head">
+              <div>
+                <h1 id="word">Word</h1>
+                <p id="part-of-speech" class="part-of-speech"></p>
+              </div>
+              <span id="phonetic" class="phonetic"></span>
+            </div>
+
+            <div class="details-grid">
+              <article class="detail-box">
+                <h3>Definition</h3>
+                <p id="definition"></p>
+              </article>
+
+              <article class="detail-box">
+                <h3>Synonyms</h3>
+                <ul id="synonyms" class="tag-list"></ul>
+              </article>
+
+              <article class="detail-box">
+                <h3>Antonyms</h3>
+                <ul id="antonyms" class="tag-list"></ul>
+              </article>
+
+              <article class="detail-box">
+                <h3>Suffix</h3>
+                <p id="suffix"></p>
+                <small id="suffix-meaning"></small>
+              </article>
+
+              <article class="detail-box">
+                <h3>Origin</h3>
+                <p id="origin"></p>
+              </article>
+
+              <article class="detail-box">
+                <h3>Example</h3>
+                <p id="example"></p>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
