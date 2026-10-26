@@ -8,7 +8,9 @@ const quickWords = [
   "careful",
   "helper",
   "planetary",
-  "beneficial"
+  "beneficial",
+  "teacher",
+  "boy"
 ];
 
 const suffixLibrary = [
@@ -29,6 +31,17 @@ const suffixLibrary = [
   { suffix: "ary", description: "related to or connected with" }
 ];
 
+const fallbackOriginLibrary = {
+  teacher: "From Old English 'tæcer' and Latin 'docere', both relating to teaching or instruction.",
+  boy: "From Old English 'boi', an old word meaning young male servant or youth.",
+  happiness: "From Old English 'hap' meaning chance or fortune, later shaped into 'happiness' to describe a positive state.",
+  bravery: "From Old French 'braverie', meaning boldness or bravery.",
+  kindness: "Derived from the word 'kind', meaning gentle or benevolent.",
+  curious: "From Latin 'curiosus', meaning careful or inquisitive.",
+  helpful: "From 'help' plus the suffix '-ful', meaning full of usefulness.",
+  careful: "From 'care' with the suffix '-ful', indicating full of care."
+};
+
 const fallbackWordData = {
   happiness: {
     word: "happiness",
@@ -37,7 +50,7 @@ const fallbackWordData = {
     antonyms: ["sadness", "misery", "unhappiness"],
     suffix: "ness",
     suffixMeaning: "state of being or quality",
-    origin: "From Old English 'hap' meaning chance or fortune, later shaped into 'happiness' to describe a positive state.",
+    origin: fallbackOriginLibrary.happiness,
     example: "Her happiness was clear in the way she smiled.",
     partOfSpeech: "noun"
   },
@@ -48,7 +61,7 @@ const fallbackWordData = {
     antonyms: ["cowardice", "timidity", "fear"],
     suffix: "ry",
     suffixMeaning: "state or quality of being",
-    origin: "From Old French 'braverie', meaning boldness or bravery.",
+    origin: fallbackOriginLibrary.bravery,
     example: "The firefighter showed remarkable bravery during the rescue.",
     partOfSpeech: "noun"
   },
@@ -59,7 +72,7 @@ const fallbackWordData = {
     antonyms: ["cruelty", "harshness", "rudeness"],
     suffix: "ness",
     suffixMeaning: "state of being or quality",
-    origin: "Derived from the word 'kind', meaning gentle or benevolent.",
+    origin: fallbackOriginLibrary.kindness,
     example: "Her kindness made everyone feel welcome.",
     partOfSpeech: "noun"
   },
@@ -70,7 +83,7 @@ const fallbackWordData = {
     antonyms: ["indifferent", "apathetic", "uninterested"],
     suffix: "ous",
     suffixMeaning: "full of or having the quality of",
-    origin: "From Latin 'curiosus', meaning careful or inquisitive.",
+    origin: fallbackOriginLibrary.curious,
     example: "The curious child asked endless questions.",
     partOfSpeech: "adjective"
   },
@@ -81,7 +94,7 @@ const fallbackWordData = {
     antonyms: ["useless", "hindering", "unhelpful"],
     suffix: "ful",
     suffixMeaning: "full of",
-    origin: "From 'help' plus the suffix '-ful', meaning full of usefulness.",
+    origin: fallbackOriginLibrary.helpful,
     example: "The teacher was very helpful during class.",
     partOfSpeech: "adjective"
   },
@@ -92,9 +105,31 @@ const fallbackWordData = {
     antonyms: ["careless", "reckless", "negligent"],
     suffix: "ful",
     suffixMeaning: "full of",
-    origin: "From 'care' with the suffix '-ful', indicating full of care.",
+    origin: fallbackOriginLibrary.careful,
     example: "She was careful while crossing the busy road.",
     partOfSpeech: "adjective"
+  },
+  teacher: {
+    word: "teacher",
+    definition: "A person who gives instruction or helps students learn.",
+    synonyms: ["educator", "instructor", "tutor"],
+    antonyms: ["student", "pupil", "learner"],
+    suffix: "er",
+    suffixMeaning: "someone who does a thing",
+    origin: fallbackOriginLibrary.teacher,
+    example: "The teacher explained the lesson clearly.",
+    partOfSpeech: "noun"
+  },
+  boy: {
+    word: "boy",
+    definition: "A young male child; a male youth.",
+    synonyms: ["kid", "lad", "youngster"],
+    antonyms: ["girl", "woman", "adult"],
+    suffix: "No common suffix",
+    suffixMeaning: "This word does not match a common English suffix pattern.",
+    origin: fallbackOriginLibrary.boy,
+    example: "The boy ran across the field.",
+    partOfSpeech: "noun"
   }
 };
 
@@ -208,9 +243,11 @@ function normalizeWordData(rawWord, entry) {
   const antonyms = uniqueList(meaning?.antonyms || []);
   const phonetic = entry?.phonetics?.find((item) => item.text)?.text || "";
   const suffix = detectSuffix(rawWord);
+  const lowerWord = (entry?.word || rawWord || "").toLowerCase();
+  const origin = entry?.origin || fallbackOriginLibrary[lowerWord] || "Origin information is not provided by the public dictionary API.";
 
   return {
-    word: (entry?.word || rawWord).toLowerCase(),
+    word: lowerWord,
     partOfSpeech: meaning?.partOfSpeech || "noun",
     definition,
     synonyms,
@@ -218,7 +255,7 @@ function normalizeWordData(rawWord, entry) {
     phonetic,
     suffix: suffix.suffix,
     suffixMeaning: suffix.description,
-    origin: entry?.origin || "Origin information not available in the API response.",
+    origin,
     example: examples[0] || "No example provided.",
   };
 }
@@ -274,3 +311,4 @@ searchForm.addEventListener("submit", (event) => {
 
 renderQuickWords();
 statusText.textContent = "Search any English word to see its definition, synonyms, antonyms, suffix, and origin.";
+searchWord("teacher");
