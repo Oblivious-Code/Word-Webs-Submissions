@@ -157,28 +157,6 @@ function uniqueList(items) {
   return [...new Set((items || []).filter(Boolean).map((item) => item.toString().trim()))].slice(0, 8);
 }
 
-function buildTags(list, emptyText) {
-  const listNode = document.createElement("ul");
-  listNode.className = "tag-list";
-
-  const values = uniqueList(list);
-
-  if (!values.length) {
-    const item = document.createElement("li");
-    item.textContent = emptyText;
-    listNode.appendChild(item);
-    return listNode;
-  }
-
-  values.forEach((value) => {
-    const item = document.createElement("li");
-    item.textContent = value;
-    listNode.appendChild(item);
-  });
-
-  return listNode;
-}
-
 function renderWordCard(data) {
   wordFields.word.textContent = data.word;
   wordFields.partOfSpeech.textContent = data.partOfSpeech || "unknown";
@@ -256,8 +234,6 @@ async function searchWord(word) {
 
   statusText.textContent = `Searching for “${searchTerm}”...`;
 
-  const fallback = fallbackWordData[searchTerm.toLowerCase()];
-
   try {
     const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(searchTerm)}`);
 
@@ -275,7 +251,10 @@ async function searchWord(word) {
     const normalized = normalizeWordData(searchTerm, entry);
     renderWordCard(normalized);
     statusText.textContent = `Results for “${searchTerm}”`;
+    return;
   } catch (error) {
+    const fallback = fallbackWordData[searchTerm.toLowerCase()];
+
     if (fallback) {
       renderWordCard(fallback);
       statusText.textContent = `Showing local result for “${searchTerm}”`;
@@ -283,7 +262,7 @@ async function searchWord(word) {
     }
 
     wordCard.classList.add("hidden");
-    statusText.textContent = `No results found for “${searchTerm}”. Try another word.`;
+    statusText.textContent = `No results found for “${searchTerm}”. Try another English word.`;
   }
 }
 
@@ -294,4 +273,4 @@ searchForm.addEventListener("submit", (event) => {
 });
 
 renderQuickWords();
-searchWord("happiness");
+statusText.textContent = "Search any English word to see its definition, synonyms, antonyms, suffix, and origin.";
