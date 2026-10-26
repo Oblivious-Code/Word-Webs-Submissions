@@ -1,13 +1,15 @@
 :root {
-  --bg: #f3f5f8;
-  --panel: #ffffff;
-  --panel-2: #f8f9fb;
-  --primary: #1e2d3d;
-  --primary-soft: #eaf0ff;
-  --text: #1d2736;
-  --muted: #5d6a7d;
-  --line: rgba(18, 28, 39, 0.08);
-  --shadow: 0 12px 32px rgba(20, 28, 44, 0.07);
+  --bg: #edf4ff;
+  --panel: rgba(255, 255, 255, 0.8);
+  --panel-strong: #ffffff;
+  --primary: #1d4ed8;
+  --primary-deep: #163db0;
+  --primary-soft: #eaf2ff;
+  --text: #1b2a3a;
+  --muted: #5d6b80;
+  --line: rgba(27, 42, 58, 0.08);
+  --glow: rgba(29, 78, 216, 0.22);
+  --shadow: 0 14px 34px rgba(30, 58, 138, 0.08);
 }
 
 * {
@@ -21,7 +23,7 @@ html {
 body {
   margin: 0;
   min-height: 100vh;
-  background: var(--bg);
+  background: radial-gradient(circle at top, #f4f8ff 0%, var(--bg) 42%, #eaf0ff 100%);
   color: var(--text);
   font-family: "Inter", sans-serif;
 }
@@ -38,7 +40,7 @@ img {
 
 .page-shell {
   width: min(1280px, calc(100% - 28px));
-  margin: 18px auto 48px;
+  margin: 20px auto 48px;
 }
 
 .site-header {
@@ -46,7 +48,7 @@ img {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 72px;
+  min-height: 82px;
 }
 
 .brand-wrap {
@@ -62,14 +64,29 @@ img {
   display: grid;
   place-items: center;
   border-radius: 12px;
-  background: linear-gradient(135deg, var(--primary), #667eea);
+  background: linear-gradient(135deg, var(--primary), #5a8bff 100%);
   color: #fff;
   font-weight: 800;
-  box-shadow: 0 12px 22px rgba(30, 45, 61, 0.18);
+  box-shadow: 0 12px 24px rgba(29, 78, 216, 0.25), 0 0 0 10px rgba(29, 78, 216, 0.08);
+  position: relative;
+}
+
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  width: 42px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(29, 78, 216, 0.18);
+  transform: translateX(-50%);
+  filter: blur(8px);
+  z-index: -1;
 }
 
 .brand {
-  font-size: clamp(1.7rem, 3vw, 2.5rem);
+  font-size: clamp(1.8rem, 3vw, 2.7rem);
   font-weight: 800;
   letter-spacing: -0.08em;
   color: var(--primary);
@@ -95,7 +112,7 @@ img {
 .search-form input {
   flex: 1;
   height: 60px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(29, 78, 216, 0.14);
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.9);
   padding: 0 22px;
@@ -105,12 +122,12 @@ img {
 }
 
 .search-form input::placeholder {
-  color: #8592a4;
+  color: #8ca0bc;
 }
 
 .search-form input:focus {
-  outline: 2px solid rgba(30, 45, 61, 0.12);
-  border-color: rgba(30, 45, 61, 0.25);
+  outline: 2px solid rgba(29, 78, 216, 0.12);
+  border-color: rgba(29, 78, 216, 0.35);
 }
 
 .search-form button {
@@ -118,11 +135,11 @@ img {
   padding: 0 26px;
   border: none;
   border-radius: 16px;
-  background: linear-gradient(135deg, var(--primary), #233d5a);
+  background: linear-gradient(135deg, var(--primary), var(--primary-deep));
   color: #fff;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: var(--shadow);
+  box-shadow: 0 18px 32px rgba(29, 78, 216, 0.18);
 }
 
 .dictionary-layout {
@@ -135,7 +152,7 @@ img {
 
 .result-panel,
 .sidebar {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 24px;
   box-shadow: var(--shadow);
@@ -165,14 +182,15 @@ img {
 }
 
 .quick-word {
-  border: 1px solid var(--line);
-  background: var(--primary-soft);
+  border: 1px solid rgba(29, 78, 216, 0.12);
+  background: linear-gradient(180deg, #edf5ff, #eaf2ff);
   color: var(--primary);
   border-radius: 999px;
   padding: 8px 12px;
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
 }
 
 .status {
@@ -202,7 +220,7 @@ img {
 
 .part-of-speech {
   margin: 10px 0 0;
-  color: var(--muted);
+  color: var(--primary-deep);
   font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -211,9 +229,9 @@ img {
 
 .phonetic {
   border-radius: 999px;
-  background: rgba(30, 45, 61, 0.05);
+  background: rgba(29, 78, 216, 0.08);
   color: var(--primary);
-  border: 1px solid rgba(30, 45, 61, 0.06);
+  border: 1px solid rgba(29, 78, 216, 0.08);
   padding: 8px 12px;
   white-space: nowrap;
   font-size: 0.78rem;
@@ -227,7 +245,7 @@ img {
 }
 
 .detail-box {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 16px 18px;
@@ -261,12 +279,13 @@ img {
 }
 
 .tag-list li {
-  background: rgba(30, 45, 61, 0.04);
-  border: 1px solid rgba(30, 45, 61, 0.08);
+  background: linear-gradient(180deg, #f4f8ff, rgba(29, 78, 216, 0.04));
+  border: 1px solid rgba(29, 78, 216, 0.08);
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 0.8rem;
   font-weight: 600;
+  color: var(--primary);
 }
 
 #suffix {
