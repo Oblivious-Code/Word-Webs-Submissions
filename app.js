@@ -238,7 +238,7 @@ function renderWordCard(data) {
 function normalizeWordData(rawWord, entry) {
   const meaning = entry?.meanings?.[0] || {};
   const definition = meaning?.definitions?.[0]?.definition || "No definition found.";
-  const examples = meaning?.definitions?.flatMap((item) => item.example ? [item.example] : []) || [];
+  const examples = meaning?.definitions?.flatMap((item) => (item.example ? [item.example] : [])) || [];
   const synonyms = uniqueList(meaning?.synonyms || []);
   const antonyms = uniqueList(meaning?.antonyms || []);
   const phonetic = entry?.phonetics?.find((item) => item.text)?.text || "";
@@ -260,6 +260,63 @@ function normalizeWordData(rawWord, entry) {
   };
 }
 
+function buildInternetFallback(word, data) {
+  const cleanWord = (word || "").trim();
+  const suffix = detectSuffix(cleanWord);
+  const origin = fallbackOriginLibrary[cleanWord.toLowerCase()] || "Origin data comes from public online references and may vary by source.";
+
+  return {
+    word: cleanWord.toLowerCase(),
+    partOfSpeech: "noun",
+    definition: data?.abstractText || data?.definition || "No definition was found from the online sources.",
+    synonyms: data?.synonyms || [],
+    antonyms: data?.antonyms || [],
+    phonetic: "",
+    suffix: suffix.suffix,
+    suffixMeaning: suffix.description,
+    origin,
+    example: data?.example || `The word “${cleanWord}” is being researched from online sources.`
+  };
+}
+
+async function fetchDuckDuckGo(word) {
+  const response = await fetch(`https://api.duckduckgo.com/?q=${encodeURIComponent(word)}&format=json&no_redirect=1&no_html=1`);
+
+  if (!response.ok) {
+    throw new Error("DuckDuckGo API failed");
+  }
+
+  const data = await response.json();
+
+  if (!data || (!data.AbstractText && !data.Definition && !data.Heading)) {
+    throw new Error("No online result");
+  }
+
+  return buildInternetFallback(word, {
+    abstractText: data.AbstractText || data.Definition || data.Heading,
+    example: data.AbstractText ? `The word “${word}” is often described as: ${data.AbstractText}` : "Online reference found."
+  });
+}
+
+async function fetchWikipediaSummary(word) {
+  const response = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`);
+
+  if (!response.ok) {
+    throw new Error("Wikipedia summary not found");
+  }
+
+  const data = await response.json();
+
+  if (!data || !data.extract) {
+    throw new Error("No Wikipedia summary");
+  }
+
+  return buildInternetFallback(word, {
+    abstractText: data.extract,
+    example: `Wikipedia describes “${word}” as: ${data.extract}`
+  });
+}
+
 async function searchWord(word) {
   const searchTerm = word.trim();
 
@@ -275,7 +332,7 @@ async function searchWord(word) {
     const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(searchTerm)}`);
 
     if (!response.ok) {
-      throw new Error("Word not found");
+      throw new Error("Word not found in dictionary API");
     }
 
     const data = await response.json();
@@ -287,19 +344,33 @@ async function searchWord(word) {
 
     const normalized = normalizeWordData(searchTerm, entry);
     renderWordCard(normalized);
-    statusText.textContent = `Results for “${searchTerm}”`;
+    statusText.textContent = `Results for “${searchTerm}” from online dictionary data`;
     return;
-  } catch (error) {
-    const fallback = fallbackWordData[searchTerm.toLowerCase()];
-
-    if (fallback) {
-      renderWordCard(fallback);
-      statusText.textContent = `Showing local result for “${searchTerm}”`;
+  } catch (dictionaryError) {
+    try {
+      const webResult = await fetchDuckDuckGo(searchTerm);
+      renderWordCard(webResult);
+      statusText.textContent = `Results for “${searchTerm}” from public web sources`;
       return;
-    }
+    } catch (duckDuckGoError) {
+      try {
+        const wikiResult = await fetchWikipediaSummary(searchTerm);
+        renderWordCard(wikiResult);
+        statusText.textContent = `Results for “${searchTerm}” from Wikipedia`;
+        return;
+      } catch (wikiError) {
+        const fallback = fallbackWordData[searchTerm.toLowerCase()];
 
-    wordCard.classList.add("hidden");
-    statusText.textContent = `No results found for “${searchTerm}”. Try another English word.`;
+        if (fallback) {
+          renderWordCard(fallback);
+          statusText.textContent = `Showing local result for “${searchTerm}”`;
+          return;
+        }
+
+        wordCard.classList.add("hidden");
+        statusText.textContent = `No results found for “${searchTerm}”. Try another English word.`;
+      }
+    }
   }
 }
 
@@ -310,5 +381,5 @@ searchForm.addEventListener("submit", (event) => {
 });
 
 renderQuickWords();
-statusText.textContent = "Search any English word to see its definition, synonyms, antonyms, suffix, and origin.";
+statusText.textContent = "Search any English word. The app checks online sources and falls back to known entries.";
 searchWord("teacher");
